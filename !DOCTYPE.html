@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>RockTR Store</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    :root {
+      --fondo: #4a3b34;
+      --caja: #ffffff;
+      --cafe-oscuro: #3a2d27;
+      --cafe-medio: #6b564d;
+      --cafe-claro: #a78a7a;
+      --acento: #d4a574;
+      --verde: #4CAF50;
+      --rojo: #c0392b;
+    }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background-color: var(--fondo);
+      margin: 0;
+      padding: 20px;
+      color: white;
+      text-align: center;
+    }
+
+    h1 {
+      color: var(--acento);
+      margin-bottom: 10px;
+      font-size: 2.5rem;
+    }
+
+    /* CONTENEDOR PRINCIPAL */
+    .contenedor {
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    /* SELECT DE CATEGORÍA */
+    #categoria {
+      background: var(--cafe-medio);
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+
+    /* PRODUCTOS */
+    #productos {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, 230px);
+      gap: 18px;
+      justify-content: center;
+    }
+
+    .producto {
+      background: var(--caja);
+      color: black;
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.25);
+    }
+
+    .producto img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 6px;
+      margin-bottom: 6px;
+    }
+
+    .producto button {
+      background: var(--acento);
+      padding: 10px;
+      width: 100%;
+      border: none;
+      color: black;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .producto button:hover {
+      background: var(--cafe-claro);
+    }
+
+    /* CARRITO */
+    .carrito {
+      background: var(--caja);
+      color: black;
+      padding: 18px;
+      margin-top: 35px;
+      border-radius: 10px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: left;
+    }
+
+    .carrito h2 {
+      margin-top: 0;
+    }
+
+    #lista-carrito li {
+      margin: 8px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .cantidad-controls button {
+      padding: 4px 8px;
+      border: none;
+      cursor: pointer;
+      background: var(--cafe-medio);
+      color: white;
+      border-radius: 4px;
+    }
+
+    .btn-eliminar {
+      background: var(--rojo);
+      padding: 5px 8px;
+      color: white;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    .vaciar {
+      background: var(--rojo);
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 12px;
+      width: 100%;
+    }
+
+    #paypal-button-container {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>RockTR Store</h1>
+
+  <div class="contenedor">
+
+    <!-- FILTRO DE CATEGORÍA -->
+    <select id="categoria">
+      <option value="todos">Todas las categorías</option>
+      <option value="Ropa">Ropa</option>
+      <option value="Accesorios">Accesorios</option>
+    </select>
+
+    <!-- LISTA DE PRODUCTOS -->
+    <div id="productos"></div>
+
+    <!-- CARRITO -->
+    <div class="carrito">
+      <h2>🧾 Carrito de Compras (0)</h2>
+      <ul id="lista-carrito"></ul>
+
+      <p><strong>Subtotal:</strong> <span id="subtotal-text">COP 0</span></p>
+      <p><strong>IVA (19%):</strong> <span id="impuestos-text">COP 0</span></p>
+      <p><strong>Descuento:</strong> <span id="descuento-text">COP 0</span></p>
+      <p><strong>Total:</strong> <span id="total-text">COP 0</span></p>
+
+      <button class="vaciar" id="btn-vaciar">🧼 Vaciar Carrito</button>
+
+      <div id="paypal-button-container"></div>
+    </div>
+
+  </div>
+
+  <!-- PAYPAL SDK -->
+  <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=USD"></script>
+
+<script>
+/* ================================
+   CONFIGURACIÓN GENERAL
+================================ */
+const MONEDA = "COP";
+const formato = new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP" });
+
+/* ================================
+   BASE DE PRODUCTOS (CON CATEGORÍAS)
+================================ */
+const productos = [
+  {
+    id: 1,
+    nombre: "Backstage Legend",
+    precio: 99000,
+    categoria: "Ropa",
+    img: "https://raw.githubusercontent.com/ecart09/imagenes/refs/heads/main/Gemini_Generated_Image_63twlw63twlw63tw.png"
+  },
+  {
+    id: 2,
+    nombre: "Hidden Fire Socks",
+    precio: 20000,
+    categoria: "Accesorios",
+    img: "https://github.com/ecart09/imagenes/blob/main/Gemini_Generated_Image_pv40l0pv40l0pv40.png?raw=true"
+  },
+  {
+    id: 3,
+    nombre: "The Decibel Cap",
+    precio: 40000,
+    categoria: "Accesorios",
+    img: "https://github.com/ecart09/imagenes/blob/main/Gemini_Generated_Image_ugywuwugywuwugyw.png?raw=true"
+  },
+  {
+    id: 4,
+    nombre: "Roadie Soul T-Shirt",
+    precio: 99000,
+    categoria: "Ropa",
+    img: "https://github.com/ecart09/imagenes/blob/main/Gemini_Generated_Image_wvc0drwvc0drwvc0.png?raw=true"
+  },
+  {
+    id: 5,
+    nombre: "Winged Fury Jacket",
+    precio: 250000,
+    categoria: "Ropa",
+    img: "https://github.com/ecart09/imagenes/blob/main/Gemini_Generated_Image_ymjfsrymjfsrymjf.png?raw=true"
+  }
+];
+
+/* ================================
+   RENDER DE PRODUCTOS
+================================ */
+const contenedor = document.getElementById("productos");
+
+function renderProductos(lista) {
+  contenedor.innerHTML = "";
+  lista.forEach(prod => {
+    const div = document.createElement("div");
+    div.classList.add("producto");
+    div.innerHTML = `
+      <img src="${prod.img}" alt="${prod.nombre}">
+      <h3>${prod.nombre}</h3>
+      <p><strong>${formato.format(prod.precio)}</strong></p>
+      <button data-add="${prod.id}">Agregar al carrito</button>
+    `;
+    contenedor.appendChild(div);
+  });
+}
+
+renderProductos(productos);
+
+/* ================================
+   FILTRO POR CATEGORÍA
+================================ */
+document.getElementById("categoria").addEventListener("change", (e) => {
+  const cat = e.target.value;
+  if (cat === "todos") renderProductos(productos);
+  else renderProductos(productos.filter(p => p.categoria === cat));
+});
+
+/* ================================
+   CARRITO CON MAP()
+================================ */
+const carrito = new Map();
+
+function guardarCarrito() {
+  localStorage.setItem("carrito-rocktr", JSON.stringify([...carrito]));
+}
+
+function cargarCarrito() {
+  const guardado = localStorage.getItem("carrito-rocktr");
+  if (guardado) {
+    const arr = JSON.parse(guardado);
+    arr.forEach(([id, obj]) => carrito.set(id, obj));
+  }
+}
+
+cargarCarrito();
+
+/* ================================
+   ACTUALIZAR CARRITO COMPLETO
+================================ */
+function actualizarCarrito() {
+  const lista = document.getElementById("lista-carrito");
+  lista.innerHTML = "";
+
+  let subtotal = 0;
+  let items = 0;
+
+  carrito.forEach(item => {
+    subtotal += item.precio * item.cantidad;
+    items += item.cantidad;
+
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <span>${item.nombre} (${formato.format(item.precio)})</span>
+
+      <span class="cantidad-controls">
+        <button data-dec="${item.id}">−</button>
+        ${item.cantidad}
+        <button data-inc="${item.id}">+</button>
+        <button class="btn-eliminar" data-del="${item.id}">🗑</button>
+      </span>
+    `;
+    lista.appendChild(li);
+  });
+
+  const iva = subtotal * 0.19;
+  const descuento = subtotal > 200000 ? subtotal * 0.10 : 0;
+  const total = subtotal + iva - descuento;
+
+  document.getElementById("subtotal-text").textContent = formato.format(subtotal);
+  document.getElementById("impuestos-text").textContent = formato.format(iva);
+  document.getElementById("descuento-text").textContent = formato.format(descuento);
+  document.getElementById("total-text").textContent = formato.format(total);
+
+  document.querySelector(".carrito h2").textContent = `🧾 Carrito de Compras (${items})`;
+
+  guardarCarrito();
+
+  // PayPal solo si hay total > 0
+  if (total > 0) renderPayPal(total);
+  else document.getElementById("paypal-button-container").innerHTML = "";
+}
+
+actualizarCarrito();
+
+/* ================================
+   EVENTOS DEL CARRITO (DELEGADOS)
+================================ */
+document.body.addEventListener("click", e => {
+  if (e.target.dataset.add) {
+    const id = Number(e.target.dataset.add);
+    const prod = productos.find(p => p.id === id);
+
+    if (carrito.has(id)) carrito.get(id).cantidad++;
+    else carrito.set(id, { ...prod, cantidad: 1 });
+
+    actualizarCarrito();
+  }
+
+  if (e.target.dataset.inc) {
+    const id = Number(e.target.dataset.inc);
+    carrito.get(id).cantidad++;
+    actualizarCarrito();
+  }
+
+  if (e.target.dataset.dec) {
+    const id = Number(e.target.dataset.dec);
+    const item = carrito.get(id);
+    if (item.cantidad > 1) item.cantidad--;
+    else carrito.delete(id);
+    actualizarCarrito();
+  }
+
+  if (e.target.dataset.del) {
+    carrito.delete(Number(e.target.dataset.del));
+    actualizarCarrito();
+  }
+});
+
+/* ================================
+   BOTÓN VACÍAR
+================================ */
+document.getElementById("btn-vaciar").addEventListener("click", () => {
+  if (confirm("¿Vaciar carrito?")) {
+    carrito.clear();
+    actualizarCarrito();
+  }
+});
+
+/* ================================
+   PAYPAL (USD sandbox)
+================================ */
+let paypalRendered = false;
+
+function renderPayPal(totalCOP) {
+  const cont = document.getElementById("paypal-button-container");
+  cont.innerHTML = "";
+
+  const USD = (totalCOP / 4000).toFixed(2); // Conversión aproximada
+
+  paypal.Buttons({
+    createOrder: (data, actions) => {
+      return actions.order.create({
+        purchase_units: [{
+          amount: { value: USD }
+        }]
+      });
+    },
+    onApprove: () => {
+      alert("Pago realizado con éxito 🎉");
+      carrito.clear();
+      actualizarCarrito();
+    }
+  }).render("#paypal-button-container");
+}
+</script>
+
+</body>
+</html>
